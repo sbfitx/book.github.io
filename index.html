@@ -4,9 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>无忧小说阅读</title>
+  <!-- 引入外部资源 -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   
+  <!-- Tailwind 配置 -->
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -14,20 +16,50 @@
         extend: {
           colors: {
             primary: '#4F46E5',
-            paper: '#F5F5DC',
-            ink: '#333333'
+            secondary: '#7C3AED',
+            light: '#F9FAFB',
+            dark: '#111827',
+            paper: '#F5F5DC', // 纸张色
+            ink: '#333333'    // 墨色
           },
           fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
             serif: ['"Noto Serif SC"', 'serif']
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.5s ease-in-out',
+            'slide-up': 'slideUp 0.3s ease-out',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            }
           }
         }
       }
     }
   </script>
   
+  <!-- 自定义工具类 -->
   <style type="text/tailwindcss">
     @layer utilities {
-      .reading-width { max-width: 800px; }
+      .content-auto {
+        content-visibility: auto;
+      }
+      .text-shadow {
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      }
+      .bg-blur {
+        backdrop-filter: blur(8px);
+      }
+      .reading-width {
+        max-width: 800px;
+      }
       .disable-selection {
         user-select: none;
         -webkit-user-select: none;
@@ -38,137 +70,264 @@
   </style>
   
   <style>
-    body { -webkit-font-smoothing: antialiased; }
-    
-    /* 核心排版修复 */
-    .reading-content {
-      white-space: pre-line;
-      text-indent: 2em;
-      line-height: 1.8;
+    /* 基础样式 */
+    body {
+      font-feature-settings: "liga" 1, "calt" 1;
+      -webkit-font-smoothing: antialiased;
     }
-    .reading-content p { margin-bottom: 1.2rem; }
+    
+    /* 滚动条美化 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: rgba(156, 163, 175, 0.5);
+      border-radius: 3px;
+    }
     
     /* 禁用打印 */
     @media print {
-      body * { visibility: hidden; }
+      body * {
+        visibility: hidden;
+      }
       .no-print-message {
         visibility: visible;
         position: absolute;
-        left: 50%; top: 50%;
+        left: 50%;
+        top: 50%;
         transform: translate(-50%, -50%);
         font-size: 24px;
         color: #333;
       }
     }
     
-    /* 翻页过渡 */
-    .page-container { transition: opacity 0.5s ease; }
-    .page-enter { opacity: 0; }
+    /* 翻页动画容器 */
+    .page-container {
+      transition: opacity 0.5s ease-in-out;
+    }
+    .page-enter {
+      opacity: 0;
+    }
+    .page-enter-active {
+      opacity: 1;
+    }
+    .page-exit {
+      opacity: 1;
+    }
+    .page-exit-active {
+      opacity: 0;
+    }
+    
+    /* 单栏阅读样式 */
+    .reading-content p {
+      margin-bottom: 1.5rem;
+      text-indent: 2em; /* 首行缩进两字符 */
+    }
   </style>
 </head>
 
-<body class="bg-paper dark:bg-gray-900 min-h-screen font-serif disable-selection">
+<body class="bg-light dark:bg-dark transition-colors duration-300 min-h-screen font-serif disable-selection">
+  <!-- 禁止打印提示 -->
   <div class="no-print-message hidden">本内容不支持打印</div>
-
-  <!-- 初始界面（修复布局） -->
-  <div id="upload-screen" class="flex items-center justify-center min-h-screen px-4">
-    <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6">
-      <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
-          <<i class="fa fa-book text-primary text-2xl"></</i>
+  
+  <!-- 初始上传界面 -->
+  <div id="upload-screen" class="flex flex-col items-center justify-center min-h-screen px-4 py-12 transition-all duration-500">
+    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8 transform transition-all hover:shadow-2xl animate-fade-in">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 mb-4">
+          <i class="fa fa-book text-primary text-3xl"></i>
         </div>
-        <h1 class="text-2xl font-bold text-ink dark:text-white">无忧小说阅读</h1>
-        <p class="text-gray-600 dark:text-gray-300 mt-1">选择同目录TXT文件或上传</p>
+        <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-ink dark:text-white mb-2">无忧小说阅读</h1>
+        <p class="text-gray-600 dark:text-gray-300">选择同目录TXT文件或上传本地文件</p>
       </div>
       
-      <!-- 同目录文件区 -->
-      <div class="mb-5">
-        <h3 class="font-medium text-ink dark:text-white flex items-center mb-3">
-          <<i class="fa fa-folder-open text-primary mr-2"></</i>同目录文件
-        </h3>
-        <div class="grid grid-cols-2 gap-2 mb-3">
-          <button class="preset-file-btn px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary transition-colors text-ink dark:text-white" data-file="星际争霸小战士的使命.txt">
-            星际争霸小战士的使命.txt
-          </button>
-          <button class="preset-file-btn px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary transition-colors text-ink dark:text-white" data-file="小说1.txt">
-            小说1.txt
-          </button>
+      <div class="space-y-6">
+        <!-- 同目录文件选择 -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+          <h3 class="font-medium text-ink dark:text-white mb-3 flex items-center">
+            <i class="fa fa-folder-open text-primary mr-2"></i>同目录文件
+          </h3>
+          <div class="space-y-3">
+            <!-- 预设常见文件名，可根据实际情况修改 -->
+            <div class="grid grid-cols-2 gap-2" id="preset-files">
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="小说1.txt">
+                小说1.txt
+              </button>
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="小说2.txt">
+                小说2.txt
+              </button>
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="故事.txt">
+                故事.txt
+              </button>
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="散文.txt">
+                散文.txt
+              </button>
+            </div>
+            
+            <!-- 自定义文件名输入 -->
+            <div class="flex space-x-2">
+              <input type="text" id="custom-filename" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink dark:text-white placeholder-gray-400" placeholder="输入文件名（如：我的小说.txt）">
+              <button id="load-custom-file" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                加载
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              <i class="fa fa-info-circle mr-1"></i>输入同目录下的TXT文件名，包括后缀.txt
+            </p>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <input type="text" id="custom-filename" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink dark:text-white placeholder-gray-400" placeholder="输入文件名（含.txt）">
-          <button id="load-custom-file" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">加载</button>
+        
+        <!-- 文件上传区域 -->
+        <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <div class="flex flex-col items-center justify-center pt-4 pb-5">
+            <i class="fa fa-cloud-upload text-2xl text-gray-400 mb-2"></i>
+            <p class="mb-1 text-sm text-gray-600 dark:text-gray-300"><span class="font-semibold">点击上传</span> 或拖放本地TXT文件</p>
+          </div>
+          <input id="file-upload" type="file" class="hidden" accept=".txt" />
+        </label>
+        
+        <!-- 功能说明 -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+          <h3 class="font-medium text-ink dark:text-white mb-2 flex items-center">
+            <i class="fa fa-info-circle text-primary mr-2"></i>功能特点
+          </h3>
+          <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
+              <span>自动分页（每页200字），单栏显示</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
+              <span>大字体设计，适合中老年人</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
+              <span>支持明暗主题切换</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
+              <span>内容保护，防止复制下载</span>
+            </li>
+          </ul>
         </div>
       </div>
-      
-      <!-- 上传区域 -->
-      <label for="file-upload" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 transition-colors">
-        <div class="flex flex-col items-center justify-center">
-          <<i class="fa fa-cloud-upload text-2xl text-gray-400 mb-2"></</i>
-          <p class="text-sm text-gray-600 dark:text-gray-300">点击上传本地TXT文件</p>
-        </div>
-        <input id="file-upload" type="file" class="hidden" accept=".txt" />
-      </label>
     </div>
+    
+    <!-- 页脚 -->
+    <footer class="mt-12 text-center text-gray-500 dark:text-gray-400 text-sm">
+      <p>© 2025 无忧小说阅读 - 专注舒适阅读体验</p>
+    </footer>
   </div>
-
+  
   <!-- 阅读界面 -->
-  <div id="reader-screen" class="hidden flex-col min-h-screen">
-    <!-- 顶部导航 -->
-    <header class="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
+  <div id="reader-screen" class="hidden flex-col min-h-screen transition-all duration-500">
+    <!-- 顶部导航栏 -->
+    <header class="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 bg-blur border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-4">
         <button id="back-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <<i class="fa fa-arrow-left text-ink dark:text-white"></</i>
+          <i class="fa fa-arrow-left text-ink dark:text-white"></i>
         </button>
-        <h1 id="book-title" class="text-lg font-semibold text-ink dark:text-white truncate max-w-[400px]">小说标题</h1>
+        <h1 id="book-title" class="text-lg font-semibold text-ink dark:text-white truncate max-w-[200px] md:max-w-[400px]">
+          小说标题
+        </h1>
       </div>
+      
       <div class="flex items-center space-x-2">
         <button id="font-size-decrease" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <<i class="fa fa-text-height text-ink dark:text-white text-sm"></</i>
+          <i class="fa fa-text-height text-ink dark:text-white text-sm"></i>
         </button>
         <button id="font-size-increase" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <<i class="fa fa-text-height text-ink dark:text-white text-lg"></</i>
+          <i class="fa fa-text-height text-ink dark:text-white text-lg"></i>
         </button>
         <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-          <<i class="fa fa-moon-o text-ink dark:text-white"></</i>
+          <i class="fa fa-moon-o text-ink dark:text-white"></i>
         </button>
       </div>
     </header>
-
+    
     <!-- 阅读内容区 -->
-    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
-      <div class="reading-width w-full mx-auto bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg p-6 md:p-10">
-        <!-- 进度信息 -->
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-16 bg-paper dark:bg-gray-900 transition-colors duration-300">
+      <div class="reading-width w-full mx-auto bg-white/80 dark:bg-gray-800/80 bg-blur rounded-xl shadow-lg p-6 md:p-10 transition-all duration-300">
+        <!-- 阅读进度 -->
         <div class="mb-6 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
           <span id="page-info">第 1 页 / 共 0 页</span>
           <span id="word-count">0 字</span>
         </div>
         
-        <!-- 内容容器 -->
-        <div id="content-container" class="page-container min-h-[50vh] md:min-h-[60vh] reading-content text-[clamp(1.25rem,3vw,1.5rem)] text-ink dark:text-gray-100 mb-8">
+        <!-- 内容容器 - 单栏显示 -->
+        <div id="content-container" class="page-container min-h-[50vh] md:min-h-[60vh] reading-content text-[clamp(1.25rem,3vw,1.5rem)] leading-relaxed text-ink dark:text-gray-100 mb-8 p-2">
+          <!-- 内容将通过JS动态插入 -->
           <p class="text-center text-gray-400">加载中...</p>
         </div>
         
-        <!-- 翻页按钮 -->
+        <!-- 翻页控制 -->
         <div class="flex justify-between items-center">
-          <button id="prev-page" class="px-6 py-3 bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 text-primary rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            <<i class="fa fa-chevron-left mr-2"></</i> 上一页
+          <button id="prev-page" class="px-6 py-3 bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 text-primary rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <i class="fa fa-chevron-left mr-2"></i> 上一页
           </button>
           <button id="next-page" class="px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            下一页 <<i class="fa fa-chevron-right ml-2"></</i>
+            下一页 <i class="fa fa-chevron-right ml-2"></i>
           </button>
         </div>
       </div>
     </main>
+    
+    <!-- 底部工具栏（移动端） -->
+    <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-3 flex justify-around items-center z-40">
+      <button id="mobile-prev" class="flex flex-col items-center text-sm text-gray-600 dark:text-gray-300">
+        <i class="fa fa-chevron-left text-lg mb-1"></i>
+        <span>上一页</span>
+      </button>
+      <button id="mobile-font" class="flex flex-col items-center text-sm text-gray-600 dark:text-gray-300">
+        <i class="fa fa-text-height text-lg mb-1"></i>
+        <span>字体</span>
+      </button>
+      <button id="mobile-theme" class="flex flex-col items-center text-sm text-gray-600 dark:text-gray-300">
+        <i class="fa fa-moon-o text-lg mb-1"></i>
+        <span>主题</span>
+      </button>
+      <button id="mobile-next" class="flex flex-col items-center text-sm text-gray-600 dark:text-gray-300">
+        <i class="fa fa-chevron-right text-lg mb-1"></i>
+        <span>下一页</span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- 字体大小调节弹窗（移动端） -->
+  <div id="font-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-xs w-full mx-4 animate-slide-up">
+      <h3 class="text-lg font-semibold text-ink dark:text-white mb-4 text-center">调整字体大小</h3>
+      <div class="flex justify-center items-center space-x-4 mb-6">
+        <button id="modal-font-decrease" class="p-3 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa fa-minus text-ink dark:text-white"></i>
+        </button>
+        <div id="font-preview" class="text-[1.5rem] font-medium text-ink dark:text-white">
+          预览文本
+        </div>
+        <button id="modal-font-increase" class="p-3 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <i class="fa fa-plus text-ink dark:text-white"></i>
+        </button>
+      </div>
+      <button id="close-font-modal" class="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+        确认
+      </button>
+    </div>
   </div>
 
   <script>
+    // 全局变量
     let bookContent = [];
     let totalPages = 0;
     let currentPage = 1;
-    let fontSize = 1.5;
-    const WORDS_PER_PAGE = 400; // 每页字数调整为400
-
-    // DOM元素
+    let fontSize = 1.5; // 默认字体大小（rem）
+    let isDarkMode = false;
+    const WORDS_PER_PAGE = 200;
+    
+    // DOM 元素
     const uploadScreen = document.getElementById('upload-screen');
     const readerScreen = document.getElementById('reader-screen');
     const fileUpload = document.getElementById('file-upload');
@@ -179,174 +338,429 @@
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const backBtn = document.getElementById('back-btn');
-    const fontSizeBtns = {
-      decrease: document.getElementById('font-size-decrease'),
-      increase: document.getElementById('font-size-increase')
-    };
+    const fontSizeDecrease = document.getElementById('font-size-decrease');
+    const fontSizeIncrease = document.getElementById('font-size-increase');
     const themeToggle = document.getElementById('theme-toggle');
+    const mobilePrev = document.getElementById('mobile-prev');
+    const mobileNext = document.getElementById('mobile-next');
+    const mobileFont = document.getElementById('mobile-font');
+    const mobileTheme = document.getElementById('mobile-theme');
+    const fontModal = document.getElementById('font-modal');
+    const modalFontDecrease = document.getElementById('modal-font-decrease');
+    const modalFontIncrease = document.getElementById('modal-font-increase');
+    const fontPreview = document.getElementById('font-preview');
+    const closeFontModal = document.getElementById('close-font-modal');
     const presetFileBtns = document.querySelectorAll('.preset-file-btn');
     const customFilenameInput = document.getElementById('custom-filename');
     const loadCustomFileBtn = document.getElementById('load-custom-file');
-
+    
     // 初始化
     document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('darkMode') === 'true') enableDarkMode();
-      if (localStorage.getItem('fontSize')) {
-        fontSize = parseFloat(localStorage.getItem('fontSize'));
+      // 检查本地存储的主题偏好
+      if (localStorage.getItem('darkMode') === 'true' || 
+          (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        enableDarkMode();
+      }
+      
+      // 检查本地存储的字体大小
+      const savedFontSize = localStorage.getItem('fontSize');
+      if (savedFontSize) {
+        fontSize = parseFloat(savedFontSize);
         updateFontSize();
       }
+      
+      // 绑定事件
       bindEvents();
     });
-
-    // 绑定事件
+    
+    // 绑定所有事件
     function bindEvents() {
-      // 同目录文件加载
-      presetFileBtns.forEach(btn => btn.addEventListener('click', () => {
-        loadFileFromSameDirectory(btn.dataset.file);
-      }));
+      // 文件上传
+      fileUpload.addEventListener('change', handleFileUpload);
+      
+      // 同目录文件选择
+      presetFileBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filename = btn.getAttribute('data-file');
+          loadFileFromSameDirectory(filename);
+        });
+      });
+      
+      // 自定义文件名加载
       loadCustomFileBtn.addEventListener('click', () => {
         const filename = customFilenameInput.value.trim();
-        if (!filename || !filename.endsWith('.txt')) {
-          alert('请输入有效的TXT文件名（含.txt后缀）');
+        if (!filename) {
+          alert('请输入文件名');
+          return;
+        }
+        if (!filename.endsWith('.txt')) {
+          alert('请输入有效的TXT文件名（需包含.txt后缀）');
           return;
         }
         loadFileFromSameDirectory(filename);
       });
-
-      // 文件上传
-      fileUpload.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.type === 'text/plain') readFile(file);
-      });
-
-      // 翻页
-      prevPageBtn.addEventListener('click', () => currentPage > 1 && renderPage(currentPage - 1));
-      nextPageBtn.addEventListener('click', () => currentPage < totalPages && renderPage(currentPage + 1));
-
-      // 返回
-      backBtn.addEventListener('click', () => {
-        readerScreen.classList.add('hidden');
-        uploadScreen.classList.remove('hidden');
-      });
-
-      // 字体调节
-      fontSizeBtns.decrease.addEventListener('click', () => {
-        if (fontSize > 1.0) {
-          fontSize -= 0.1;
-          updateFontSize();
-          localStorage.setItem('fontSize', fontSize);
+      
+      // 回车触发自定义文件加载
+      customFilenameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          loadCustomFileBtn.click();
         }
       });
-      fontSizeBtns.increase.addEventListener('click', () => {
-        if (fontSize < 2.5) {
-          fontSize += 0.1;
-          updateFontSize();
-          localStorage.setItem('fontSize', fontSize);
+      
+      // 拖放上传
+      const dropArea = document.querySelector('label[for="file-upload"]');
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight() {
+        dropArea.classList.add('border-primary');
+        dropArea.classList.add('bg-primary/5');
+      }
+      
+      function unhighlight() {
+        dropArea.classList.remove('border-primary');
+        dropArea.classList.remove('bg-primary/5');
+      }
+      
+      dropArea.addEventListener('drop', handleDrop, false);
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0 && files[0].type === 'text/plain') {
+          readFile(files[0]);
+        } else {
+          alert('请上传TXT格式的文件');
+        }
+      }
+      
+      // 翻页控制
+      prevPageBtn.addEventListener('click', goToPrevPage);
+      nextPageBtn.addEventListener('click', goToNextPage);
+      mobilePrev.addEventListener('click', goToPrevPage);
+      mobileNext.addEventListener('click', goToNextPage);
+      
+      // 返回上传界面
+      backBtn.addEventListener('click', goBackToUpload);
+      
+      // 字体大小调节
+      fontSizeDecrease.addEventListener('click', decreaseFontSize);
+      fontSizeIncrease.addEventListener('click', increaseFontSize);
+      modalFontDecrease.addEventListener('click', decreaseFontSize);
+      modalFontIncrease.addEventListener('click', increaseFontSize);
+      
+      // 移动端字体调节弹窗
+      mobileFont.addEventListener('click', () => {
+        fontModal.classList.remove('hidden');
+        updateFontPreview();
+      });
+      
+      closeFontModal.addEventListener('click', () => {
+        fontModal.classList.add('hidden');
+      });
+      
+      // 点击模态框背景关闭
+      fontModal.addEventListener('click', (e) => {
+        if (e.target === fontModal) {
+          fontModal.classList.add('hidden');
         }
       });
-
+      
       // 主题切换
-      themeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
-        themeToggle.innerHTML = isDark ? 
-          '<<i class="fa fa-sun-o text-ink dark:text-white"></</i>' : 
-          '<<i class="fa fa-moon-o text-ink dark:text-white"></</i>';
-        localStorage.setItem('darkMode', isDark);
-      });
-
-      // 禁用复制/右键
-      document.addEventListener('contextmenu', e => e.preventDefault());
+      themeToggle.addEventListener('click', toggleTheme);
+      mobileTheme.addEventListener('click', toggleTheme);
+      
+      // 键盘导航
       document.addEventListener('keydown', (e) => {
-        if (['F12', 'u', 'c', 'p'].includes(e.key) && e.ctrlKey) e.preventDefault();
+        if (readerScreen.classList.contains('hidden')) return;
+        
+        // 左右箭头翻页
+        if (e.key === 'ArrowLeft') {
+          goToPrevPage();
+        } else if (e.key === 'ArrowRight') {
+          goToNextPage();
+        }
+        
+        // 禁用F12、Ctrl+U、Ctrl+C等
+        if (e.key === 'F12' || 
+            (e.ctrlKey && e.key === 'u') || 
+            (e.ctrlKey && e.key === 'c') ||
+            (e.ctrlKey && e.key === 'p')) {
+          e.preventDefault();
+        }
+      });
+      
+      // 禁用右键菜单
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
       });
     }
-
-    // 加载同目录文件
+    
+    // 从同目录加载文件
     function loadFileFromSameDirectory(filename) {
+      // 显示加载状态
+      contentContainer.innerHTML = '<p class="text-center text-gray-400">正在加载文件...</p>';
+      uploadScreen.classList.add('hidden');
+      readerScreen.classList.remove('hidden');
+      bookTitle.textContent = filename;
+      
+      // 使用fetch加载同目录下的txt文件
       fetch(filename)
-        .then(res => res.ok ? res.text() : Promise.reject('文件不存在'))
-        .then(content => processBookContent(content, filename))
-        .catch(err => {
-          alert(`加载失败：${err}\n请确认文件与HTML在同一目录`);
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('文件不存在或无法访问');
+          }
+          return response.text();
+        })
+        .then(content => {
+          processBookContent(content, filename);
+        })
+        .catch(error => {
+          alert(`加载失败：${error.message}\n请确保文件 "${filename}" 与HTML文件在同一目录`);
+          goBackToUpload();
         });
     }
-
-    // 读取本地文件
+    
+    // 处理文件上传
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      if (file.type !== 'text/plain') {
+        alert('请上传TXT格式的文件');
+        return;
+      }
+      
+      readFile(file);
+    }
+    
+    // 读取TXT文件
     function readFile(file) {
       const reader = new FileReader();
-      reader.onload = (e) => processBookContent(e.target.result, file.name);
+      
+      reader.onload = (e) => {
+        const content = e.target.result;
+        processBookContent(content, file.name);
+      };
+      
+      reader.onerror = () => {
+        alert('文件读取失败，请重试');
+      };
+      
       reader.readAsText(file, 'utf-8');
     }
-
-    // 处理小说内容
+    
+    // 处理书籍内容，进行分页（单栏显示）
     function processBookContent(content, fileName) {
+      // 清理内容，保留原始段落结构
       const cleanedContent = content
-        .replace(/\r\n/g, '\n')
-        .replace(/\n{3,}/g, '\n\n')
+        .replace(/\r\n/g, '\n') // 统一换行符
+        .replace(/\n{3,}/g, '\n\n') // 最多保留两个空行
         .trim();
-
-      // 分页（400字/页，保留段落完整）
+      
+      // 按字数分页（每页200字）
       bookContent = [];
-      let currentPos = 0;
       const totalWords = cleanedContent.length;
-      totalPages = 0;
-
-      while (currentPos < totalWords) {
-        let endPos = Math.min(currentPos + WORDS_PER_PAGE, totalWords);
-        // 优先按换行拆分，避免段落断裂
-        if (endPos < totalWords) {
-          const nextNewline = cleanedContent.indexOf('\n', endPos);
-          if (nextNewline !== -1 && nextNewline - currentPos <= WORDS_PER_PAGE + 50) {
-            endPos = nextNewline;
+      totalPages = Math.ceil(totalWords / WORDS_PER_PAGE);
+      
+      // 分页时尽量保持段落完整性
+      let currentPosition = 0;
+      
+      for (let i = 0; i < totalPages; i++) {
+        let endPosition = Math.min(currentPosition + WORDS_PER_PAGE, totalWords);
+        
+        // 如果不是最后一页，且当前位置不是段落结束，尝试找到最近的段落结束位置
+        if (i < totalPages - 1 && endPosition < totalWords) {
+          // 查找当前分页位置附近的换行符，保持段落完整
+          const nextNewline = cleanedContent.indexOf('\n\n', endPosition);
+          if (nextNewline !== -1 && nextNewline - currentPosition <= WORDS_PER_PAGE + 100) {
+            endPosition = nextNewline;
           }
         }
-        bookContent.push(cleanedContent.substring(currentPos, endPos));
-        currentPos = endPos;
-        totalPages++;
+        
+        bookContent.push(cleanedContent.substring(currentPosition, endPosition));
+        currentPosition = endPosition;
       }
-
-      // 更新界面
+      
+      // 更新UI
       bookTitle.textContent = fileName.replace('.txt', '');
       wordCount.textContent = `${totalWords} 字`;
       currentPage = 1;
-      uploadScreen.classList.add('hidden');
-      readerScreen.classList.remove('hidden');
-      renderPage(1);
+      
+      // 渲染第一页
+      renderPage(currentPage);
+      
+      // 更新翻页按钮状态
       updatePageButtons();
     }
-
-    // 渲染页面
+    
+    // 渲染指定页码的内容（单栏显示）
     function renderPage(pageNum) {
+      if (pageNum < 1 || pageNum > totalPages) return;
+      
       currentPage = pageNum;
+      
+      // 添加过渡动画
       contentContainer.classList.add('page-enter');
-
+      
       setTimeout(() => {
-        const pageContent = bookContent[pageNum - 1];
-        const paragraphs = pageContent.split('\n\n').filter(p => p.trim());
-        contentContainer.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+        const content = bookContent[pageNum - 1];
+        
+        // 保持原始段落结构，只将空行转换为段落
+        const paragraphs = content.split('\n\n').filter(para => para.trim() !== '');
+        
+        let html = '';
+        paragraphs.forEach(para => {
+          // 替换单换行符为空格，保持段落内的文字连续
+          const cleanedPara = para.replace(/\n/g, ' ').trim();
+          html += `<p>${cleanedPara}</p>`;
+        });
+        
+        contentContainer.innerHTML = html;
         contentContainer.classList.remove('page-enter');
-
+        
+        // 更新页码信息
         pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
-        updatePageButtons();
+        
+        // 保存阅读进度
+        saveReadingProgress();
       }, 300);
     }
-
+    
+    // 上一页
+    function goToPrevPage() {
+      if (currentPage > 1) {
+        renderPage(currentPage - 1);
+        updatePageButtons();
+      }
+    }
+    
+    // 下一页
+    function goToNextPage() {
+      if (currentPage < totalPages) {
+        renderPage(currentPage + 1);
+        updatePageButtons();
+      }
+    }
+    
     // 更新翻页按钮状态
     function updatePageButtons() {
       prevPageBtn.disabled = currentPage <= 1;
       nextPageBtn.disabled = currentPage >= totalPages;
+      mobilePrev.disabled = currentPage <= 1;
+      mobileNext.disabled = currentPage >= totalPages;
+      
+      if (currentPage <= 1) {
+        prevPageBtn.classList.add('disabled:opacity-50');
+        mobilePrev.classList.add('text-gray-400');
+        mobilePrev.classList.remove('text-gray-600', 'dark:text-gray-300');
+      } else {
+        prevPageBtn.classList.remove('disabled:opacity-50');
+        mobilePrev.classList.remove('text-gray-400');
+        mobilePrev.classList.add('text-gray-600', 'dark:text-gray-300');
+      }
+      
+      if (currentPage >= totalPages) {
+        nextPageBtn.classList.add('disabled:opacity-50');
+        mobileNext.classList.add('text-gray-400');
+        mobileNext.classList.remove('text-gray-600', 'dark:text-gray-300');
+      } else {
+        nextPageBtn.classList.remove('disabled:opacity-50');
+        mobileNext.classList.remove('text-gray-400');
+        mobileNext.classList.add('text-gray-600', 'dark:text-gray-300');
+      }
     }
-
-    // 更新字体大小
+    
+    // 返回上传界面
+    function goBackToUpload() {
+      readerScreen.classList.add('hidden');
+      uploadScreen.classList.remove('hidden');
+      fileUpload.value = ''; // 重置文件输入
+      customFilenameInput.value = ''; // 重置自定义文件名输入
+    }
+    
+    // 字体大小调节
+    function increaseFontSize() {
+      if (fontSize < 2.5) { // 最大字体限制
+        fontSize += 0.1;
+        updateFontSize();
+        updateFontPreview();
+        saveFontSize();
+      }
+    }
+    
+    function decreaseFontSize() {
+      if (fontSize > 1.0) { // 最小字体限制
+        fontSize -= 0.1;
+        updateFontSize();
+        updateFontPreview();
+        saveFontSize();
+      }
+    }
+    
     function updateFontSize() {
       contentContainer.style.fontSize = `${fontSize}rem`;
     }
-
-    // 深色模式
+    
+    function updateFontPreview() {
+      fontPreview.style.fontSize = `${fontSize}rem`;
+    }
+    
+    function saveFontSize() {
+      localStorage.setItem('fontSize', fontSize);
+    }
+    
+    // 主题切换
+    function toggleTheme() {
+      if (isDarkMode) {
+        disableDarkMode();
+      } else {
+        enableDarkMode();
+      }
+    }
+    
     function enableDarkMode() {
+      isDarkMode = true;
       document.documentElement.classList.add('dark');
-      themeToggle.innerHTML = '<<i class="fa fa-sun-o text-ink dark:text-white"></</i>';
+      themeToggle.innerHTML = '<i class="fa fa-sun-o text-ink dark:text-white"></i>';
+      mobileTheme.innerHTML = '<i class="fa fa-sun-o text-lg mb-1"></i><span>浅色</span>';
+      localStorage.setItem('darkMode', 'true');
+    }
+    
+    function disableDarkMode() {
+      isDarkMode = false;
+      document.documentElement.classList.remove('dark');
+      themeToggle.innerHTML = '<i class="fa fa-moon-o text-ink dark:text-white"></i>';
+      mobileTheme.innerHTML = '<i class="fa fa-moon-o text-lg mb-1"></i><span>深色</span>';
+      localStorage.setItem('darkMode', 'false');
+    }
+    
+    // 保存阅读进度
+    function saveReadingProgress() {
+      if (bookTitle.textContent) {
+        const progress = {
+          bookTitle: bookTitle.textContent,
+          currentPage: currentPage,
+          totalPages: totalPages,
+          lastRead: new Date().toISOString()
+        };
+        localStorage.setItem('readingProgress', JSON.stringify(progress));
+      }
     }
   </script>
 </body>
