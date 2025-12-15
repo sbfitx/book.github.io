@@ -121,6 +121,12 @@
     .page-exit-active {
       opacity: 0;
     }
+    
+    /* 单栏阅读样式 */
+    .reading-content p {
+      margin-bottom: 1.5rem;
+      text-indent: 2em; /* 首行缩进两字符 */
+    }
   </style>
 </head>
 
@@ -136,16 +142,50 @@
           <i class="fa fa-book text-primary text-3xl"></i>
         </div>
         <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-ink dark:text-white mb-2">无忧小说阅读</h1>
-        <p class="text-gray-600 dark:text-gray-300">上传TXT文件，享受舒适阅读体验</p>
+        <p class="text-gray-600 dark:text-gray-300">选择同目录TXT文件或上传本地文件</p>
       </div>
       
       <div class="space-y-6">
+        <!-- 同目录文件选择 -->
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+          <h3 class="font-medium text-ink dark:text-white mb-3 flex items-center">
+            <i class="fa fa-folder-open text-primary mr-2"></i>同目录文件
+          </h3>
+          <div class="space-y-3">
+            <!-- 预设常见文件名，可根据实际情况修改 -->
+            <div class="grid grid-cols-2 gap-2" id="preset-files">
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="小说1.txt">
+                小说1.txt
+              </button>
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="小说2.txt">
+                小说2.txt
+              </button>
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="故事.txt">
+                故事.txt
+              </button>
+              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="散文.txt">
+                散文.txt
+              </button>
+            </div>
+            
+            <!-- 自定义文件名输入 -->
+            <div class="flex space-x-2">
+              <input type="text" id="custom-filename" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink dark:text-white placeholder-gray-400" placeholder="输入文件名（如：我的小说.txt）">
+              <button id="load-custom-file" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                加载
+              </button>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              <i class="fa fa-info-circle mr-1"></i>输入同目录下的TXT文件名，包括后缀.txt
+            </p>
+          </div>
+        </div>
+        
         <!-- 文件上传区域 -->
-        <label for="file-upload" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-          <div class="flex flex-col items-center justify-center pt-5 pb-6">
-            <i class="fa fa-cloud-upload text-3xl text-gray-400 mb-2"></i>
-            <p class="mb-2 text-sm text-gray-600 dark:text-gray-300"><span class="font-semibold">点击上传</span> 或拖放TXT文件</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">支持 .txt 格式文件</p>
+        <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <div class="flex flex-col items-center justify-center pt-4 pb-5">
+            <i class="fa fa-cloud-upload text-2xl text-gray-400 mb-2"></i>
+            <p class="mb-1 text-sm text-gray-600 dark:text-gray-300"><span class="font-semibold">点击上传</span> 或拖放本地TXT文件</p>
           </div>
           <input id="file-upload" type="file" class="hidden" accept=".txt" />
         </label>
@@ -158,7 +198,7 @@
           <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
             <li class="flex items-start">
               <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
-              <span>自动分页（每页200字）</span>
+              <span>自动分页（每页200字），单栏显示</span>
             </li>
             <li class="flex items-start">
               <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
@@ -218,8 +258,8 @@
           <span id="word-count">0 字</span>
         </div>
         
-        <!-- 内容容器 -->
-        <div id="content-container" class="page-container min-h-[50vh] md:min-h-[60vh] flex items-center justify-center text-[clamp(1.25rem,3vw,1.5rem)] leading-relaxed text-ink dark:text-gray-100 mb-8 p-2">
+        <!-- 内容容器 - 单栏显示 -->
+        <div id="content-container" class="page-container min-h-[50vh] md:min-h-[60vh] reading-content text-[clamp(1.25rem,3vw,1.5rem)] leading-relaxed text-ink dark:text-gray-100 mb-8 p-2">
           <!-- 内容将通过JS动态插入 -->
           <p class="text-center text-gray-400">加载中...</p>
         </div>
@@ -310,6 +350,9 @@
     const modalFontIncrease = document.getElementById('modal-font-increase');
     const fontPreview = document.getElementById('font-preview');
     const closeFontModal = document.getElementById('close-font-modal');
+    const presetFileBtns = document.querySelectorAll('.preset-file-btn');
+    const customFilenameInput = document.getElementById('custom-filename');
+    const loadCustomFileBtn = document.getElementById('load-custom-file');
     
     // 初始化
     document.addEventListener('DOMContentLoaded', () => {
@@ -334,6 +377,35 @@
     function bindEvents() {
       // 文件上传
       fileUpload.addEventListener('change', handleFileUpload);
+      
+      // 同目录文件选择
+      presetFileBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const filename = btn.getAttribute('data-file');
+          loadFileFromSameDirectory(filename);
+        });
+      });
+      
+      // 自定义文件名加载
+      loadCustomFileBtn.addEventListener('click', () => {
+        const filename = customFilenameInput.value.trim();
+        if (!filename) {
+          alert('请输入文件名');
+          return;
+        }
+        if (!filename.endsWith('.txt')) {
+          alert('请输入有效的TXT文件名（需包含.txt后缀）');
+          return;
+        }
+        loadFileFromSameDirectory(filename);
+      });
+      
+      // 回车触发自定义文件加载
+      customFilenameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          loadCustomFileBtn.click();
+        }
+      });
       
       // 拖放上传
       const dropArea = document.querySelector('label[for="file-upload"]');
@@ -439,6 +511,31 @@
       });
     }
     
+    // 从同目录加载文件
+    function loadFileFromSameDirectory(filename) {
+      // 显示加载状态
+      contentContainer.innerHTML = '<p class="text-center text-gray-400">正在加载文件...</p>';
+      uploadScreen.classList.add('hidden');
+      readerScreen.classList.remove('hidden');
+      bookTitle.textContent = filename;
+      
+      // 使用fetch加载同目录下的txt文件
+      fetch(filename)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('文件不存在或无法访问');
+          }
+          return response.text();
+        })
+        .then(content => {
+          processBookContent(content, filename);
+        })
+        .catch(error => {
+          alert(`加载失败：${error.message}\n请确保文件 "${filename}" 与HTML文件在同一目录`);
+          goBackToUpload();
+        });
+    }
+    
     // 处理文件上传
     function handleFileUpload(e) {
       const file = e.target.files[0];
@@ -468,33 +565,42 @@
       reader.readAsText(file, 'utf-8');
     }
     
-    // 处理书籍内容，进行分页
+    // 处理书籍内容，进行分页（单栏显示）
     function processBookContent(content, fileName) {
-      // 清理内容（去除多余空行和空格）
+      // 清理内容，保留原始段落结构
       const cleanedContent = content
-        .replace(/\n+/g, '\n')
-        .replace(/\s+/g, ' ')
+        .replace(/\r\n/g, '\n') // 统一换行符
+        .replace(/\n{3,}/g, '\n\n') // 最多保留两个空行
         .trim();
       
-      // 按字数分页
+      // 按字数分页（每页200字）
       bookContent = [];
       const totalWords = cleanedContent.length;
       totalPages = Math.ceil(totalWords / WORDS_PER_PAGE);
       
+      // 分页时尽量保持段落完整性
+      let currentPosition = 0;
+      
       for (let i = 0; i < totalPages; i++) {
-        const start = i * WORDS_PER_PAGE;
-        const end = Math.min(start + WORDS_PER_PAGE, totalWords);
-        bookContent.push(cleanedContent.substring(start, end));
+        let endPosition = Math.min(currentPosition + WORDS_PER_PAGE, totalWords);
+        
+        // 如果不是最后一页，且当前位置不是段落结束，尝试找到最近的段落结束位置
+        if (i < totalPages - 1 && endPosition < totalWords) {
+          // 查找当前分页位置附近的换行符，保持段落完整
+          const nextNewline = cleanedContent.indexOf('\n\n', endPosition);
+          if (nextNewline !== -1 && nextNewline - currentPosition <= WORDS_PER_PAGE + 100) {
+            endPosition = nextNewline;
+          }
+        }
+        
+        bookContent.push(cleanedContent.substring(currentPosition, endPosition));
+        currentPosition = endPosition;
       }
       
       // 更新UI
       bookTitle.textContent = fileName.replace('.txt', '');
       wordCount.textContent = `${totalWords} 字`;
       currentPage = 1;
-      
-      // 显示阅读界面
-      uploadScreen.classList.add('hidden');
-      readerScreen.classList.remove('hidden');
       
       // 渲染第一页
       renderPage(currentPage);
@@ -503,7 +609,7 @@
       updatePageButtons();
     }
     
-    // 渲染指定页码的内容
+    // 渲染指定页码的内容（单栏显示）
     function renderPage(pageNum) {
       if (pageNum < 1 || pageNum > totalPages) return;
       
@@ -514,12 +620,15 @@
       
       setTimeout(() => {
         const content = bookContent[pageNum - 1];
-        // 将内容分段，每段不超过80字，提高阅读体验
-        const paragraphs = splitIntoParagraphs(content, 80);
+        
+        // 保持原始段落结构，只将空行转换为段落
+        const paragraphs = content.split('\n\n').filter(para => para.trim() !== '');
         
         let html = '';
         paragraphs.forEach(para => {
-          html += `<p class="mb-4">${para}</p>`;
+          // 替换单换行符为空格，保持段落内的文字连续
+          const cleanedPara = para.replace(/\n/g, ' ').trim();
+          html += `<p>${cleanedPara}</p>`;
         });
         
         contentContainer.innerHTML = html;
@@ -531,30 +640,6 @@
         // 保存阅读进度
         saveReadingProgress();
       }, 300);
-    }
-    
-    // 将文本分割成段落
-    function splitIntoParagraphs(text, maxLength) {
-      const paragraphs = [];
-      let current = '';
-      let words = text.split(' ');
-      
-      for (let word of words) {
-        if (current.length + word.length + 1 <= maxLength) {
-          current += (current ? ' ' : '') + word;
-        } else {
-          if (current) {
-            paragraphs.push(current);
-          }
-          current = word;
-        }
-      }
-      
-      if (current) {
-        paragraphs.push(current);
-      }
-      
-      return paragraphs;
     }
     
     // 上一页
@@ -606,6 +691,7 @@
       readerScreen.classList.add('hidden');
       uploadScreen.classList.remove('hidden');
       fileUpload.value = ''; // 重置文件输入
+      customFilenameInput.value = ''; // 重置自定义文件名输入
     }
     
     // 字体大小调节
