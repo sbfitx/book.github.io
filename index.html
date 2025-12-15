@@ -40,11 +40,11 @@
   <style>
     body { -webkit-font-smoothing: antialiased; }
     
-    /* 核心修复：确保文字横排、换行正常 */
+    /* 核心排版修复 */
     .reading-content {
-      white-space: pre-line; /* 保留原始换行 */
-      text-indent: 2em;      /* 首行缩进 */
-      line-height: 1.8;      /* 舒适行高 */
+      white-space: pre-line;
+      text-indent: 2em;
+      line-height: 1.8;
     }
     .reading-content p { margin-bottom: 1.2rem; }
     
@@ -70,39 +70,39 @@
 <body class="bg-paper dark:bg-gray-900 min-h-screen font-serif disable-selection">
   <div class="no-print-message hidden">本内容不支持打印</div>
 
-  <!-- 初始界面 -->
-  <div id="upload-screen" class="flex flex-col items-center justify-center min-h-screen px-4 py-12">
-    <div class="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl p-8">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-          <<i class="fa fa-book text-primary text-3xl"></</i>
+  <!-- 初始界面（修复布局） -->
+  <div id="upload-screen" class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6">
+      <div class="text-center mb-6">
+        <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-primary/10 mb-4">
+          <<i class="fa fa-book text-primary text-2xl"></</i>
         </div>
-        <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-ink dark:text-white mb-2">无忧小说阅读</h1>
-        <p class="text-gray-600 dark:text-gray-300">选择同目录TXT文件或上传</p>
+        <h1 class="text-2xl font-bold text-ink dark:text-white">无忧小说阅读</h1>
+        <p class="text-gray-600 dark:text-gray-300 mt-1">选择同目录TXT文件或上传</p>
       </div>
       
-      <!-- 同目录文件选择 -->
-      <div class="space-y-4 mb-6">
-        <h3 class="font-medium text-ink dark:text-white flex items-center">
+      <!-- 同目录文件区 -->
+      <div class="mb-5">
+        <h3 class="font-medium text-ink dark:text-white flex items-center mb-3">
           <<i class="fa fa-folder-open text-primary mr-2"></</i>同目录文件
         </h3>
-        <div class="grid grid-cols-2 gap-2" id="preset-files">
-          <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary transition-colors" data-file="星际争霸小战士的使命.txt">
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <button class="preset-file-btn px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary transition-colors text-ink dark:text-white" data-file="星际争霸小战士的使命.txt">
             星际争霸小战士的使命.txt
           </button>
-          <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary transition-colors" data-file="小说1.txt">
+          <button class="preset-file-btn px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary transition-colors text-ink dark:text-white" data-file="小说1.txt">
             小说1.txt
           </button>
         </div>
-        <div class="flex space-x-2">
+        <div class="flex gap-2">
           <input type="text" id="custom-filename" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink dark:text-white placeholder-gray-400" placeholder="输入文件名（含.txt）">
           <button id="load-custom-file" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">加载</button>
         </div>
       </div>
       
       <!-- 上传区域 -->
-      <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 transition-colors">
-        <div class="flex flex-col items-center justify-center pt-4">
+      <label for="file-upload" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 transition-colors">
+        <div class="flex flex-col items-center justify-center">
           <<i class="fa fa-cloud-upload text-2xl text-gray-400 mb-2"></</i>
           <p class="text-sm text-gray-600 dark:text-gray-300">点击上传本地TXT文件</p>
         </div>
@@ -135,7 +135,7 @@
     </header>
 
     <!-- 阅读内容区 -->
-    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-16">
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8">
       <div class="reading-width w-full mx-auto bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-xl shadow-lg p-6 md:p-10">
         <!-- 进度信息 -->
         <div class="mb-6 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
@@ -143,7 +143,7 @@
           <span id="word-count">0 字</span>
         </div>
         
-        <!-- 内容容器（修复排版核心区域） -->
+        <!-- 内容容器 -->
         <div id="content-container" class="page-container min-h-[50vh] md:min-h-[60vh] reading-content text-[clamp(1.25rem,3vw,1.5rem)] text-ink dark:text-gray-100 mb-8">
           <p class="text-center text-gray-400">加载中...</p>
         </div>
@@ -166,7 +166,7 @@
     let totalPages = 0;
     let currentPage = 1;
     let fontSize = 1.5;
-    const WORDS_PER_PAGE = 200; // 每页200字（但优先保持排版完整）
+    const WORDS_PER_PAGE = 400; // 每页字数调整为400
 
     // DOM元素
     const uploadScreen = document.getElementById('upload-screen');
@@ -190,7 +190,6 @@
 
     // 初始化
     document.addEventListener('DOMContentLoaded', () => {
-      // 恢复主题/字体偏好
       if (localStorage.getItem('darkMode') === 'true') enableDarkMode();
       if (localStorage.getItem('fontSize')) {
         fontSize = parseFloat(localStorage.getItem('fontSize'));
@@ -280,15 +279,14 @@
       reader.readAsText(file, 'utf-8');
     }
 
-    // 处理小说内容（核心修复：保留排版）
+    // 处理小说内容
     function processBookContent(content, fileName) {
-      // 清理内容：统一换行符，保留原始排版
       const cleanedContent = content
-        .replace(/\r\n/g, '\n') // 统一为\n
-        .replace(/\n{3,}/g, '\n\n') // 最多保留2个空行
+        .replace(/\r\n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
         .trim();
 
-      // 分页逻辑：优先保持段落/行完整，再按200字拆分
+      // 分页（400字/页，保留段落完整）
       bookContent = [];
       let currentPos = 0;
       const totalWords = cleanedContent.length;
@@ -296,15 +294,13 @@
 
       while (currentPos < totalWords) {
         let endPos = Math.min(currentPos + WORDS_PER_PAGE, totalWords);
-        
-        // 找到最近的换行/空行，避免拆分段落
+        // 优先按换行拆分，避免段落断裂
         if (endPos < totalWords) {
           const nextNewline = cleanedContent.indexOf('\n', endPos);
           if (nextNewline !== -1 && nextNewline - currentPos <= WORDS_PER_PAGE + 50) {
             endPos = nextNewline;
           }
         }
-
         bookContent.push(cleanedContent.substring(currentPos, endPos));
         currentPos = endPos;
         totalPages++;
@@ -320,21 +316,17 @@
       updatePageButtons();
     }
 
-    // 渲染页面（核心修复：正确解析排版）
+    // 渲染页面
     function renderPage(pageNum) {
       currentPage = pageNum;
       contentContainer.classList.add('page-enter');
 
       setTimeout(() => {
-        // 按空行拆分段落，保留换行
         const pageContent = bookContent[pageNum - 1];
         const paragraphs = pageContent.split('\n\n').filter(p => p.trim());
-        
-        // 生成HTML：段落用p包裹，保留内部换行
         contentContainer.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
         contentContainer.classList.remove('page-enter');
 
-        // 更新进度
         pageInfo.textContent = `第 ${currentPage} 页 / 共 ${totalPages} 页`;
         updatePageButtons();
       }, 300);
@@ -351,7 +343,7 @@
       contentContainer.style.fontSize = `${fontSize}rem`;
     }
 
-    // 深色模式切换
+    // 深色模式
     function enableDarkMode() {
       document.documentElement.classList.add('dark');
       themeToggle.innerHTML = '<<i class="fa fa-sun-o text-ink dark:text-white"></</i>';
