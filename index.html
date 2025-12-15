@@ -66,6 +66,14 @@
         -moz-user-select: none;
         -ms-user-select: none;
       }
+      .click-area-left {
+        left: 0;
+        width: 50%;
+      }
+      .click-area-right {
+        right: 0;
+        width: 50%;
+      }
     }
   </style>
   
@@ -127,6 +135,47 @@
       margin-bottom: 1.5rem;
       text-indent: 2em; /* 首行缩进两字符 */
     }
+    
+    /* 点击翻页区域 */
+    .click-area {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      z-index: 10;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .reading-container:hover .click-area {
+      opacity: 0.1;
+    }
+    .click-area-left:hover {
+      background: linear-gradient(to right, rgba(79, 70, 229, 0.2), transparent);
+    }
+    .click-area-right:hover {
+      background: linear-gradient(to left, rgba(79, 70, 229, 0.2), transparent);
+    }
+    
+    /* 翻页提示箭头 */
+    .page-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      color: rgba(79, 70, 229, 0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 20;
+    }
+    .reading-container:hover .page-arrow {
+      opacity: 1;
+    }
+    .arrow-left {
+      left: 1rem;
+    }
+    .arrow-right {
+      right: 1rem;
+    }
   </style>
 </head>
 
@@ -142,43 +191,50 @@
           <i class="fa fa-book text-primary text-3xl"></i>
         </div>
         <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-ink dark:text-white mb-2">无忧小说阅读</h1>
-        <p class="text-gray-600 dark:text-gray-300">选择同目录TXT文件或上传本地文件</p>
+        <p class="text-gray-600 dark:text-gray-300">选择目录下的TXT文件开始阅读</p>
       </div>
       
       <div class="space-y-6">
-        <!-- 同目录文件选择 -->
+        <!-- 目录文件列表 -->
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
           <h3 class="font-medium text-ink dark:text-white mb-3 flex items-center">
-            <i class="fa fa-folder-open text-primary mr-2"></i>同目录文件
+            <i class="fa fa-folder-open text-primary mr-2"></i>目录文件列表
           </h3>
-          <div class="space-y-3">
-            <!-- 预设常见文件名，可根据实际情况修改 -->
-            <div class="grid grid-cols-2 gap-2" id="preset-files">
-              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="小说1.txt">
-                小说1.txt
-              </button>
-              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="小说2.txt">
-                小说2.txt
-              </button>
-              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="故事.txt">
-                故事.txt
-              </button>
-              <button class="preset-file-btn px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:border-primary transition-colors" data-file="散文.txt">
-                散文.txt
-              </button>
-            </div>
-            
-            <!-- 自定义文件名输入 -->
-            <div class="flex space-x-2">
-              <input type="text" id="custom-filename" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink dark:text-white placeholder-gray-400" placeholder="输入文件名（如：我的小说.txt）">
-              <button id="load-custom-file" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
-                加载
-              </button>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">
-              <i class="fa fa-info-circle mr-1"></i>输入同目录下的TXT文件名，包括后缀.txt
-            </p>
+          <div class="space-y-2 max-h-60 overflow-y-auto pr-2" id="file-list">
+            <!-- 预设常见小说文件，可根据实际情况修改 -->
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="星际争霸小战士的使命.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>星际争霸小战士的使命.txt
+            </button>
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="三国演义.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>三国演义.txt
+            </button>
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="水浒传.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>水浒传.txt
+            </button>
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="西游记.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>西游记.txt
+            </button>
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="红楼梦.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>红楼梦.txt
+            </button>
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="金庸武侠合集.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>金庸武侠合集.txt
+            </button>
+            <button class="file-item-btn w-full text-left px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary hover:bg-primary/5 transition-colors" data-file="古龙小说精选.txt">
+              <i class="fa fa-file-text-o text-primary mr-2"></i>古龙小说精选.txt
+            </button>
           </div>
+          
+          <!-- 自定义文件名输入 -->
+          <div class="flex space-x-2 mt-4">
+            <input type="text" id="custom-filename" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-ink dark:text-white placeholder-gray-400" placeholder="输入文件名（如：我的小说.txt）">
+            <button id="load-custom-file" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+              加载
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+            <i class="fa fa-info-circle mr-1"></i>文件列表包含目录下常见小说，可直接点击加载
+          </p>
         </div>
         
         <!-- 文件上传区域 -->
@@ -193,24 +249,24 @@
         <!-- 功能说明 -->
         <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
           <h3 class="font-medium text-ink dark:text-white mb-2 flex items-center">
-            <i class="fa fa-info-circle text-primary mr-2"></i>功能特点
+            <i class="fa fa-info-circle text-primary mr-2"></i>阅读说明
           </h3>
           <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
             <li class="flex items-start">
               <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
-              <span>自动分页（每页200字），单栏显示</span>
+              <span>自动分页（每页400字），单栏显示</span>
             </li>
             <li class="flex items-start">
               <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
-              <span>大字体设计，适合中老年人</span>
+              <span>点击屏幕左侧 → 上一页，点击右侧 → 下一页</span>
             </li>
             <li class="flex items-start">
               <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
-              <span>支持明暗主题切换</span>
+              <span>大字体设计，支持字体大小调节，适合中老年人</span>
             </li>
             <li class="flex items-start">
               <i class="fa fa-check text-green-500 mt-1 mr-2"></i>
-              <span>内容保护，防止复制下载</span>
+              <span>支持明暗主题切换，内容保护防止复制下载</span>
             </li>
           </ul>
         </div>
@@ -249,9 +305,18 @@
       </div>
     </header>
     
-    <!-- 阅读内容区 -->
-    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-16 bg-paper dark:bg-gray-900 transition-colors duration-300">
-      <div class="reading-width w-full mx-auto bg-white/80 dark:bg-gray-800/80 bg-blur rounded-xl shadow-lg p-6 md:p-10 transition-all duration-300">
+    <!-- 阅读内容区 - 包含点击翻页区域 -->
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-8 md:py-16 bg-paper dark:bg-gray-900 transition-colors duration-300 relative reading-container">
+      <!-- 左半屏点击区域 -->
+      <div id="left-click-area" class="click-area click-area-left"></div>
+      <!-- 右半屏点击区域 -->
+      <div id="right-click-area" class="click-area click-area-right"></div>
+      
+      <!-- 翻页箭头提示 -->
+      <i class="fa fa-chevron-left page-arrow arrow-left" aria-hidden="true"></i>
+      <i class="fa fa-chevron-right page-arrow arrow-right" aria-hidden="true"></i>
+      
+      <div class="reading-width w-full mx-auto bg-white/80 dark:bg-gray-800/80 bg-blur rounded-xl shadow-lg p-6 md:p-10 transition-all duration-300 relative z-30">
         <!-- 阅读进度 -->
         <div class="mb-6 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
           <span id="page-info">第 1 页 / 共 0 页</span>
@@ -264,8 +329,8 @@
           <p class="text-center text-gray-400">加载中...</p>
         </div>
         
-        <!-- 翻页控制 -->
-        <div class="flex justify-between items-center">
+        <!-- 翻页按钮（已隐藏，保留结构备用） -->
+        <div class="flex justify-between items-center hidden">
           <button id="prev-page" class="px-6 py-3 bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 text-primary rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed" disabled>
             <i class="fa fa-chevron-left mr-2"></i> 上一页
           </button>
@@ -276,7 +341,7 @@
       </div>
     </main>
     
-    <!-- 底部工具栏（移动端） -->
+    <!-- 底部工具栏（移动端）- 保留常用功能 -->
     <div class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 p-3 flex justify-around items-center z-40">
       <button id="mobile-prev" class="flex flex-col items-center text-sm text-gray-600 dark:text-gray-300">
         <i class="fa fa-chevron-left text-lg mb-1"></i>
@@ -325,7 +390,7 @@
     let currentPage = 1;
     let fontSize = 1.5; // 默认字体大小（rem）
     let isDarkMode = false;
-    const WORDS_PER_PAGE = 200;
+    const WORDS_PER_PAGE = 400; // 每页400字
     
     // DOM 元素
     const uploadScreen = document.getElementById('upload-screen');
@@ -350,9 +415,11 @@
     const modalFontIncrease = document.getElementById('modal-font-increase');
     const fontPreview = document.getElementById('font-preview');
     const closeFontModal = document.getElementById('close-font-modal');
-    const presetFileBtns = document.querySelectorAll('.preset-file-btn');
+    const fileItemBtns = document.querySelectorAll('.file-item-btn');
     const customFilenameInput = document.getElementById('custom-filename');
     const loadCustomFileBtn = document.getElementById('load-custom-file');
+    const leftClickArea = document.getElementById('left-click-area');
+    const rightClickArea = document.getElementById('right-click-area');
     
     // 初始化
     document.addEventListener('DOMContentLoaded', () => {
@@ -378,8 +445,8 @@
       // 文件上传
       fileUpload.addEventListener('change', handleFileUpload);
       
-      // 同目录文件选择
-      presetFileBtns.forEach(btn => {
+      // 目录文件列表点击
+      fileItemBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const filename = btn.getAttribute('data-file');
           loadFileFromSameDirectory(filename);
@@ -449,9 +516,11 @@
         }
       }
       
-      // 翻页控制
-      prevPageBtn.addEventListener('click', goToPrevPage);
-      nextPageBtn.addEventListener('click', goToNextPage);
+      // 点击屏幕左右半屏翻页（核心功能）
+      leftClickArea.addEventListener('click', goToPrevPage);
+      rightClickArea.addEventListener('click', goToNextPage);
+      
+      // 移动端翻页按钮
       mobilePrev.addEventListener('click', goToPrevPage);
       mobileNext.addEventListener('click', goToNextPage);
       
@@ -565,7 +634,7 @@
       reader.readAsText(file, 'utf-8');
     }
     
-    // 处理书籍内容，进行分页（单栏显示）
+    // 处理书籍内容，进行分页（每页400字）
     function processBookContent(content, fileName) {
       // 清理内容，保留原始段落结构
       const cleanedContent = content
@@ -573,19 +642,17 @@
         .replace(/\n{3,}/g, '\n\n') // 最多保留两个空行
         .trim();
       
-      // 按字数分页（每页200字）
+      // 按字数分页（每页400字）
       bookContent = [];
       const totalWords = cleanedContent.length;
-      totalPages = Math.ceil(totalWords / WORDS_PER_PAGE);
-      
-      // 分页时尽量保持段落完整性
+      totalPages = 0;
       let currentPosition = 0;
       
-      for (let i = 0; i < totalPages; i++) {
+      while (currentPosition < totalWords) {
         let endPosition = Math.min(currentPosition + WORDS_PER_PAGE, totalWords);
         
         // 如果不是最后一页，且当前位置不是段落结束，尝试找到最近的段落结束位置
-        if (i < totalPages - 1 && endPosition < totalWords) {
+        if (endPosition < totalWords) {
           // 查找当前分页位置附近的换行符，保持段落完整
           const nextNewline = cleanedContent.indexOf('\n\n', endPosition);
           if (nextNewline !== -1 && nextNewline - currentPosition <= WORDS_PER_PAGE + 100) {
@@ -595,6 +662,7 @@
         
         bookContent.push(cleanedContent.substring(currentPosition, endPosition));
         currentPosition = endPosition;
+        totalPages++;
       }
       
       // 更新UI
@@ -605,7 +673,7 @@
       // 渲染第一页
       renderPage(currentPage);
       
-      // 更新翻页按钮状态
+      // 更新翻页按钮状态（虽然隐藏，但保持状态同步）
       updatePageButtons();
     }
     
@@ -665,22 +733,19 @@
       mobilePrev.disabled = currentPage <= 1;
       mobileNext.disabled = currentPage >= totalPages;
       
+      // 移动端按钮样式调整
       if (currentPage <= 1) {
-        prevPageBtn.classList.add('disabled:opacity-50');
         mobilePrev.classList.add('text-gray-400');
         mobilePrev.classList.remove('text-gray-600', 'dark:text-gray-300');
       } else {
-        prevPageBtn.classList.remove('disabled:opacity-50');
         mobilePrev.classList.remove('text-gray-400');
         mobilePrev.classList.add('text-gray-600', 'dark:text-gray-300');
       }
       
       if (currentPage >= totalPages) {
-        nextPageBtn.classList.add('disabled:opacity-50');
         mobileNext.classList.add('text-gray-400');
         mobileNext.classList.remove('text-gray-600', 'dark:text-gray-300');
       } else {
-        nextPageBtn.classList.remove('disabled:opacity-50');
         mobileNext.classList.remove('text-gray-400');
         mobileNext.classList.add('text-gray-600', 'dark:text-gray-300');
       }
